@@ -18,10 +18,12 @@ using namespace std;
 #include "Sync_queue.h"
 #include "ClientCommand.h"
 #include "Player.hpp"
+#include "Game.h"
 
 namespace machiavelli {
     const int tcp_port {1080};
-    const string prompt {"machiavelli> "};
+    const string prompt {"machiavelli> "}; 
+	std::shared_ptr<Game> game = nullptr;
 }
 
 static Sync_queue<ClientCommand> queue;
@@ -37,6 +39,7 @@ void consume_command() // runs in its own thread
 				// TODO handle command here
 				if (command.get_cmd() == "start") {
 					*client << "Starting game setup (not implemented)\r\n" << machiavelli::prompt;
+					machiavelli::game->setUp();
 				}
 				else {
 					*client << player->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli::prompt;
@@ -79,7 +82,9 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
 			}
 		};
 
-		shared_ptr<Player> player {new Player {name, age}};
+		shared_ptr<Player> player {new Player {name, age, client}};
+
+		machiavelli::game->addPlayer(player);
 		*client << "Welcome, " << name << ", have fun playing our game!\r\n" << machiavelli::prompt;
 
         while (true) { // game loop
@@ -90,6 +95,8 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
 				
 				if (cmd == "quit") {
 					client->write("Bye!\r\n");
+					//remove player
+					machiavelli::game->removePlayer(player);
 					break;
 				}
 
@@ -124,6 +131,8 @@ int main(int argc, const char * argv[])
     
 	// create a server socket
 	ServerSocket server {machiavelli::tcp_port};
+
+	machiavelli::game = make_shared<Game>();
 	
 	while (true) {
 		try {

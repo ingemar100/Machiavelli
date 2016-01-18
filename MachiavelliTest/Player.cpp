@@ -9,3 +9,22 @@
 #include "Player.hpp"
 using namespace std;
 
+
+
+const Player& Player::operator<<(const char c) const
+{
+	socket->write(c);
+	return *this;
+}
+
+const Player& Player::operator<<(const char* message) const
+{
+	socket->write(std::string{ message });
+	return *this;
+}
+
+const Player& Player::operator<<(const std::string& message) const
+{
+	socket->write(message);
+	return *this;
+}
