@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CharacterReader.h" />
     <ClInclude Include="ClientCommand.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Player.hpp" />
@@ -150,6 +151,7 @@
     <ClInclude Include="throw.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CharacterReader.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
