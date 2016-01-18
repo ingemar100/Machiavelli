@@ -41,6 +41,9 @@ void consume_command() // runs in its own thread
 					*client << "Starting game setup (not implemented)\r\n" << machiavelli::prompt;
 					machiavelli::game->setUp();
 				}
+				else if (command.get_cmd() == "help") {
+					*client << machiavelli::game->showHelp();
+				}
 				else {
 					*client << player->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli::prompt;
 				}
