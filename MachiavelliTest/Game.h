@@ -16,5 +16,8 @@ private:
 	std::vector<std::shared_ptr<Player>> players;
 	void messageAll(std::string message);
 	void messageAllExcept(std::string message, std::shared_ptr<Player> except);
+	int goldPieces;
+	void takeGold(std::shared_ptr<Player> player, int amount);
+
 };
 
