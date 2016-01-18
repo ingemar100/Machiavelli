@@ -35,7 +35,12 @@ void consume_command() // runs in its own thread
 			shared_ptr<Player> player {command.get_player()};
 			try {
 				// TODO handle command here
-				*client << player->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli::prompt;
+				if (command.get_cmd() == "start") {
+					*client << "Starting game setup (not implemented)\r\n" << machiavelli::prompt;
+				}
+				else {
+					*client << player->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli::prompt;
+				}
 			} catch (const exception& ex) {
 				cerr << "*** exception in consumer thread for player " << player->get_name() << ": " << ex.what() << '\n';
 				if (client->is_open()) {
@@ -58,9 +63,23 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
     try {
         client->write("Welcome to Server 1.0! To quit, type 'quit'.\r\n");
 		client->write("What's your name?\r\n");
-        client->write(machiavelli::prompt);
+		client->write(machiavelli::prompt);
 		string name {client->readline()};
-		shared_ptr<Player> player {new Player {name}};
+
+		client->write("How old are you?\r\n");
+
+		bool valid = false;
+		int age = 0;
+		while (!valid) {
+			client->write(machiavelli::prompt);
+			string input{ client->readline() };
+			if (isdigit(input[0])) {
+				valid = true;
+				age = std::stoi(input);
+			}
+		};
+
+		shared_ptr<Player> player {new Player {name, age}};
 		*client << "Welcome, " << name << ", have fun playing our game!\r\n" << machiavelli::prompt;
 
         while (true) { // game loop
