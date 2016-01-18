@@ -26,6 +26,8 @@ public:
 	void set_age(const int& new_age) { age = new_age; }
 	void set_socket(std::shared_ptr<Socket> new_socket) { socket = new_socket; }
 
+	void addGold(int amount) { goldPieces += amount; }
+
 	const Player & operator<<(const char c) const;
 	const Player & operator<<(const char * message) const;
 	const Player & operator<<(const std::string & message) const;
@@ -33,6 +35,8 @@ private:
 	std::string name;
 	int age;
 	std::shared_ptr<Socket> socket;
+
+	int goldPieces;
 };
 
 #endif /* Player_hpp */
