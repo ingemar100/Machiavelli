@@ -8,17 +8,21 @@
 #include <iterator>
 #include <algorithm>
 #include <time.h>
+#include <memory>
+
+#include "Character.h"
 
 class CharacterReader
 {
-private:
-	std::vector<std::string> characters;
-
 public:
 	CharacterReader();
 	~CharacterReader();
-	void randomCharacters();
 
-	std::vector<std::string> getCharacters();
+	std::vector<std::shared_ptr<Character>> getShuffledCharacters();
+
+	std::vector<std::shared_ptr<Character>> getCharactersInOrder();
+
+private:
+	std::vector<std::shared_ptr<Character>> charactersInOrder;
 };
 

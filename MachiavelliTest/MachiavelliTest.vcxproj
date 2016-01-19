@@ -142,6 +142,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Buildingcard.h" />
+    <ClInclude Include="BuildingcardReader.h" />
+    <ClInclude Include="Character.h" />
     <ClInclude Include="CharacterReader.h" />
     <ClInclude Include="ClientCommand.h" />
     <ClInclude Include="Game.h" />
@@ -151,6 +154,9 @@
     <ClInclude Include="throw.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Buildingcard.cpp" />
+    <ClCompile Include="BuildingcardReader.cpp" />
+    <ClCompile Include="Character.cpp" />
     <ClCompile Include="CharacterReader.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />

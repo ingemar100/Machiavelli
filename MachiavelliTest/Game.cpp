@@ -35,9 +35,9 @@ void Game::setUp()
 	//king->get_socket << "Koning: " << king->get_name() << "\r\n";
 	messageAll(king->get_name() + "is the oldest player, so becomes king.");
 
-	CharacterReader* reader = new CharacterReader(); // smart pointer van maken
-	for (auto character : reader->getCharacters()) {
-		messageAll(character);
+	std::shared_ptr<CharacterReader> reader (new CharacterReader()); // smart pointer van maken
+	for (auto character : reader->getShuffledCharacters()) {
+		messageAll(character->getName());
 	}
 }
 

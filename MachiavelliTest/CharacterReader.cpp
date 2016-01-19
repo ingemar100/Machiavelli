@@ -18,7 +18,12 @@ CharacterReader::CharacterReader()
 			tokens.push_back(buffer);
 		}
 		if (tokens.size() > 1) {
-			characters.push_back(tokens[1]);
+			std::shared_ptr<Character> character(new Character());
+			character->setName(tokens[1]);
+			if (tokens.size() > 2) {
+				character->setColor(tokens[2]);
+			}
+			charactersInOrder.push_back(character);
 		}
 	}
 }
@@ -26,20 +31,22 @@ CharacterReader::CharacterReader()
 
 CharacterReader::~CharacterReader()
 {
-	characters.clear();
+	charactersInOrder.clear();
 }
 
-void CharacterReader::randomCharacters()
+std::vector<std::shared_ptr<Character>> CharacterReader::getShuffledCharacters()
 {
-	int randIndex = rand() % characters.size();
-	std::vector<std::string>characterscopy(characters);
-	std::random_shuffle(characterscopy.begin(), characterscopy.end());
-	characterscopy.erase(characterscopy.begin());
+	int randIndex = rand() % charactersInOrder.size();
+	std::vector<std::shared_ptr<Character>>shuffledCharacters(charactersInOrder);
+	std::random_shuffle(shuffledCharacters.begin(), shuffledCharacters.end());
+	//shuffledCharacters.erase(shuffledCharacters.begin());
+
+	return  shuffledCharacters;
 }
 
-std::vector<std::string> CharacterReader::getCharacters()
+std::vector<std::shared_ptr<Character>> CharacterReader::getCharactersInOrder()
 {
-	return characters;
+	return charactersInOrder;
 }
 
 

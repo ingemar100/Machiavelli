@@ -13,6 +13,7 @@ public:
 	void addPlayer(std::shared_ptr<Player> player);
 	void removePlayer(std::shared_ptr<Player> player);
 	std::string showHelp();
+
 private:
 	std::vector<std::shared_ptr<Player>> players;
 	void messageAll(std::string message);
