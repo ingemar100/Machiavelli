@@ -7,6 +7,7 @@
 #include <iterator>
 #include <memory>
 #include <algorithm>
+#include <time.h>
 
 #include "Buildingcard.h"
 
@@ -17,6 +18,7 @@ public:
 	~BuildingcardReader();
 
 	std::vector<std::shared_ptr<Buildingcard>> getBuildingCards();
+	std::shared_ptr<Buildingcard> takeCard();
 
 private:
 	std::vector<std::shared_ptr<Buildingcard>> buildingCards;

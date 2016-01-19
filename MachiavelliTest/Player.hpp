@@ -11,8 +11,10 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "Socket.h"
+#include "Buildingcard.h"
 
 class Player {
 public:
@@ -27,6 +29,7 @@ public:
 	void set_socket(std::shared_ptr<Socket> new_socket) { socket = new_socket; }
 
 	void addGold(int amount) { goldPieces += amount; }
+	void addBuildingCard(std::shared_ptr<Buildingcard> buildingCard);
 
 	const Player & operator<<(const char c) const;
 	const Player & operator<<(const char * message) const;
@@ -37,6 +40,7 @@ private:
 	std::shared_ptr<Socket> socket;
 
 	int goldPieces;
+	std::vector<std::shared_ptr<Buildingcard>> buildingCards;
 };
 
 #endif /* Player_hpp */

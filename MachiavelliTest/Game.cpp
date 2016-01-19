@@ -18,6 +18,8 @@ void Game::setUp()
 
 	messageAll("Setting up game");
 
+	bg = std::make_shared<BuildingcardReader>();
+
 	goldPieces = 30;
 
 	//oldest player is king
@@ -30,15 +32,11 @@ void Game::setUp()
 
 		//each player takes two goldpieces
 		takeGold(player, 2);
+		takeCard(player, 4);
 	}
 
 	//king->get_socket << "Koning: " << king->get_name() << "\r\n";
-	messageAll(king->get_name() + "is the oldest player, so becomes king.");
-
-	std::shared_ptr<CharacterReader> reader (new CharacterReader()); // smart pointer van maken
-	for (auto character : reader->getShuffledCharacters()) {
-		messageAll(character->getName());
-	}
+	messageAll(king->get_name() + " is the oldest player, so becomes the king.");
 }
 
 void Game::addPlayer(std::shared_ptr<Player> player)
@@ -86,7 +84,7 @@ std::string Game::showHelp()
 	info += "7 - Bouwmeester\r\n";
 	info += "\tTrekt twee extra kaarten\r\n";
 	info += "\tMag drie gebouwen bouwen\r\n";
-	info += "8 - Condottiere(oranje)\r\n";
+	info += "8 - Condottiere(rood)\r\n";
 	info += "\tVernietigt een gebouw\r\n";
 	info += "\tOntvangt van alle militaire gebouwen\r\n";
 
@@ -116,4 +114,20 @@ void Game::takeGold(std::shared_ptr<Player> player, int amount)
 		amount += goldPieces;
 	}
 	player->addGold(amount);
+}
+
+void Game::
+
+
+takeCard(std::shared_ptr<Player> player, int amount)
+{
+	*player << "You took the following BuildingCard(s):";
+	for (int i = 0; i < amount; i++) {
+		std::shared_ptr<Buildingcard> buildingcardToBeTaken = bg->takeCard();
+		player->addBuildingCard(buildingcardToBeTaken);
+		*player << "\r\n\t" << buildingcardToBeTaken->getName() << " (" << buildingcardToBeTaken->getColor() << ", " << std::to_string(buildingcardToBeTaken->getPrice()) << ") \r\n";
+		if (buildingcardToBeTaken->getDescription() != "") {
+			*player << "\t\t" << buildingcardToBeTaken->getDescription() << "\r\n";
+		}
+	}
 }

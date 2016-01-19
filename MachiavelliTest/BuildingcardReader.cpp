@@ -4,6 +4,7 @@
 
 BuildingcardReader::BuildingcardReader()
 {
+	srand(time(0));
 	const std::string textfile("Bouwkaarten.csv");
 	std::ifstream input_file(textfile); // Dze constructie opent de file voor het lezen;
 	std::string line;
@@ -40,6 +41,13 @@ BuildingcardReader::~BuildingcardReader()
 std::vector<std::shared_ptr<Buildingcard>> BuildingcardReader::getBuildingCards()
 {
 	return buildingCards;
+}
+
+std::shared_ptr<Buildingcard> BuildingcardReader::takeCard()
+{
+	std::shared_ptr<Buildingcard> cardToBeTaken = buildingCards[0];
+	buildingCards.erase(buildingCards.begin());
+	return cardToBeTaken;
 }
 
 

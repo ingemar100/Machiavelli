@@ -10,6 +10,10 @@
 using namespace std;
 
 
+void Player::addBuildingCard(std::shared_ptr<Buildingcard> buildingCard)
+{
+	buildingCards.push_back(buildingCard);
+}
 
 const Player& Player::operator<<(const char c) const
 {

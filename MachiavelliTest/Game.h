@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
-#include "Player.hpp"
 #include <memory>
+
+#include "Player.hpp"
+#include "BuildingcardReader.h"
 
 class Game
 {
@@ -20,6 +22,8 @@ private:
 	void messageAllExcept(std::string message, std::shared_ptr<Player> except);
 	int goldPieces;
 	void takeGold(std::shared_ptr<Player> player, int amount);
+	void takeCard(std::shared_ptr<Player> player, int amount);
+	std::shared_ptr<BuildingcardReader> bg;
 
 };
 

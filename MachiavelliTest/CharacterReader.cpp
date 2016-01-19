@@ -36,10 +36,10 @@ CharacterReader::~CharacterReader()
 
 std::vector<std::shared_ptr<Character>> CharacterReader::getShuffledCharacters()
 {
+	srand(time(0));
 	int randIndex = rand() % charactersInOrder.size();
 	std::vector<std::shared_ptr<Character>>shuffledCharacters(charactersInOrder);
 	std::random_shuffle(shuffledCharacters.begin(), shuffledCharacters.end());
-	//shuffledCharacters.erase(shuffledCharacters.begin());
 
 	return  shuffledCharacters;
 }
