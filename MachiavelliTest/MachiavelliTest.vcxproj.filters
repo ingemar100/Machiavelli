@@ -45,6 +45,12 @@
     <ClInclude Include="BuildingcardReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Dialogue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="machiavelli.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

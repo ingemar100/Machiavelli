@@ -5,7 +5,7 @@
 //  Created by Bob Polis on 16/09/14.
 //  Copyright (c) 2014 Avans Hogeschool, 's-Hertogenbosch. All rights reserved.
 //
-
+#pragma once
 #include <thread>
 #include <iostream>
 #include <exception>
@@ -19,13 +19,13 @@ using namespace std;
 #include "ClientCommand.h"
 #include "Player.hpp"
 #include "Game.h"
+#include "machiavelli.h"
+
 
 namespace machiavelli {
-    const int tcp_port {1080};
-    const string prompt {"machiavelli> "}; 
+	const int tcp_port{ 1080 };
 	std::shared_ptr<Game> game = nullptr;
 }
-
 static Sync_queue<ClientCommand> queue;
 
 void consume_command() // runs in its own thread
@@ -37,16 +37,9 @@ void consume_command() // runs in its own thread
 			shared_ptr<Player> player {command.get_player()};
 			try {
 				// TODO handle command here
-				if (command.get_cmd() == "start") {
-					*client << "Starting game setup (not implemented)\r\n" << machiavelli::prompt;
-					machiavelli::game->setUp();
-				}
-				else if (command.get_cmd() == "help") {
-					*client << machiavelli::game->showHelp();
-				}
-				else {
-					*client << player->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli::prompt;
-				}
+				//machiavelli::game->handleCommand(command);
+				thread poep{ &Game::handleCommand, machiavelli::game, command };
+				poep.detach();
 			} catch (const exception& ex) {
 				cerr << "*** exception in consumer thread for player " << player->get_name() << ": " << ex.what() << '\n';
 				if (client->is_open()) {
@@ -69,7 +62,7 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
     try {
         client->write("Welcome to Server 1.0! To quit, type 'quit'.\r\n");
 		client->write("What's your name?\r\n");
-		client->write(machiavelli::prompt);
+		client->write(machiavelli_prompt);
 		string name {client->readline()};
 
 		client->write("How old are you?\r\n");
@@ -77,7 +70,7 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
 		bool valid = false;
 		int age = 0;
 		while (!valid) {
-			client->write(machiavelli::prompt);
+			client->write(machiavelli_prompt);
 			string input{ client->readline() };
 			if (isdigit(input[0])) {
 				valid = true;
@@ -88,14 +81,16 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
 		shared_ptr<Player> player {new Player {name, age, client}};
 
 		machiavelli::game->addPlayer(player);
-		*client << "Welcome, " << name << ", have fun playing our game!\r\n" << machiavelli::prompt;
+		*client << "Welcome, " << name << ", use the 'start' command to begin playing our game!\r\n" << machiavelli_prompt;
 
         while (true) { // game loop
             try {
+				string cmd;
                 // read first line of request
-				string cmd {client->readline()};
+				cmd = client->readline();
+
 				cerr << '[' << client->get_dotted_ip() << " (" << client->get_socket() << ") " << player->get_name() << "] " << cmd << '\n';
-				
+
 				if (cmd == "quit") {
 					client->write("Bye!\r\n");
 					//remove player
@@ -103,8 +98,8 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
 					break;
 				}
 
-                ClientCommand command {cmd, client, player};
-                queue.put(command);
+				ClientCommand command{ cmd, client, player };
+				queue.put(command);
 
             } catch (const exception& ex) {
 				cerr << "*** exception in client handler thread for player " << player->get_name() << ": " << ex.what() << '\n';

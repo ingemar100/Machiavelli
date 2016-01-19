@@ -147,7 +147,9 @@
     <ClInclude Include="Character.h" />
     <ClInclude Include="CharacterReader.h" />
     <ClInclude Include="ClientCommand.h" />
+    <ClInclude Include="Dialogue.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="machiavelli.h" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="Sync_queue.h" />

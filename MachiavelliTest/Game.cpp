@@ -1,7 +1,9 @@
+#pragma once
 #include "Game.h"
 #include "CharacterReader.h"
 #include <iostream>
-
+#include "machiavelli.h"
+#include <thread>
 
 Game::Game()
 {
@@ -19,12 +21,12 @@ void Game::setUp()
 	messageAll("Setting up game");
 
 	bg = std::make_shared<BuildingcardReader>();
+	cr = std::make_shared<CharacterReader>();
 
 	goldPieces = 30;
 
 	//oldest player is king
 	int oldest = 0;
-	std::shared_ptr<Player> king;
 	for (auto player : players) {
 		if (player->get_age() > oldest) {
 			king = player;
@@ -32,7 +34,7 @@ void Game::setUp()
 
 		//each player takes two goldpieces
 		takeGold(player, 2);
-		takeCard(player, 4);
+		takeCards(player, 4);
 	}
 
 	//king->get_socket << "Koning: " << king->get_name() << "\r\n";
@@ -54,6 +56,122 @@ void Game::removePlayer(std::shared_ptr<Player> player)
 		}
 		else {
 			i++;
+		}
+	}
+}
+
+void Game::startRound()
+{
+	messageAll("Starting next round");
+
+	pickCharacters();
+
+	handleTurns();
+}
+
+void Game::handleCommand(ClientCommand command)
+{
+	try {
+		std::string cmd = command.get_cmd();
+		if (command.get_cmd() == "start") {
+			setUp();
+
+			startRound();
+		}
+		else if (command.get_cmd() == "help") {
+			*command.get_client() << showHelp();
+		}
+		else if(std::all_of(cmd.begin(), cmd.end(), ::isdigit)){
+			command.get_player()->handleCommand(command.get_cmd());
+			//check if players turn
+		}
+		else {
+			*command.get_client() << command.get_player()->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli_prompt;
+		}
+	}
+	catch(...) {
+		cerr << "*** exception in consumer thread for player " << command.get_player()->get_name() << '\n';
+		if (command.get_client()->is_open()) {
+			command.get_client()->write("Sorry, something went wrong during handling of your request.\r\n");
+		}
+	}
+}
+
+void Game::messageAll(std::string message)
+{
+	for (auto player : players) {
+		*player << message << "\r\n";
+	}
+}
+
+void Game::messageAllExcept(std::string message, std::shared_ptr<Player> except)
+{
+	for (auto player : players) {
+		if (player != except) {
+			*player << message << "\r\n";
+		}
+	}
+}
+
+void Game::takeGold(std::shared_ptr<Player> player, int amount)
+{
+	goldPieces -= amount;
+	if (goldPieces < 0) {
+		amount += goldPieces;
+	}
+	player->addGold(amount);
+}
+
+void Game::takeCards(std::shared_ptr<Player> player, int amount)
+{
+	*player << "You took the following BuildingCard(s):";
+	for (int i = 0; i < amount; i++) {
+		std::shared_ptr<Buildingcard> buildingcardToBeTaken = bg->takeCard();
+		player->addBuildingCard(buildingcardToBeTaken);
+		*player << "\r\n\t" << buildingcardToBeTaken->getName() << " (" << buildingcardToBeTaken->getColor() << ", " << std::to_string(buildingcardToBeTaken->getPrice()) << ") \r\n";
+		if (buildingcardToBeTaken->getDescription() != "") {
+			*player << "\t\t" << buildingcardToBeTaken->getDescription() << "\r\n";
+		}
+	}
+}
+
+void Game::pickCharacters()
+{
+	//clear characters from players
+	for (auto player : players) {
+		player->clearCharacters();
+	}
+
+	std::vector<std::shared_ptr<Character>> characters = cr->getShuffledCharacters();
+	std::shared_ptr<Player> toPick = king;
+
+	while (characters.size() > 0) {
+		//koning kiest eerst kaarten
+		//daarna steeds volgende
+		characters = toPick->pickCharacters(characters);
+
+		bool next = false;
+		for (auto player : players) {
+			if (next) {
+				toPick = player;
+				break;
+			}
+			else if (player == toPick) {
+				next = true;
+			}
+		}
+	}
+}
+
+void Game::handleTurns() {
+	auto characters = cr->getCharactersInOrder();
+
+	for (auto character : characters) {
+		//check welke player karakter is
+		for (auto player : players) {
+			if (player->isCharacter(character)) {
+				player->act(character);
+			}
 		}
 	}
 }
@@ -89,45 +207,4 @@ std::string Game::showHelp()
 	info += "\tOntvangt van alle militaire gebouwen\r\n";
 
 	return info;
-}
-
-void Game::messageAll(std::string message)
-{
-	for (auto player : players) {
-		*player << message << "\r\n";
-	}
-}
-
-void Game::messageAllExcept(std::string message, std::shared_ptr<Player> except)
-{
-	for (auto player : players) {
-		if (player != except) {
-			*player << message << "\r\n";
-		}
-	}
-}
-
-void Game::takeGold(std::shared_ptr<Player> player, int amount)
-{
-	goldPieces -= amount;
-	if (goldPieces < 0) {
-		amount += goldPieces;
-	}
-	player->addGold(amount);
-}
-
-void Game::
-
-
-takeCard(std::shared_ptr<Player> player, int amount)
-{
-	*player << "You took the following BuildingCard(s):";
-	for (int i = 0; i < amount; i++) {
-		std::shared_ptr<Buildingcard> buildingcardToBeTaken = bg->takeCard();
-		player->addBuildingCard(buildingcardToBeTaken);
-		*player << "\r\n\t" << buildingcardToBeTaken->getName() << " (" << buildingcardToBeTaken->getColor() << ", " << std::to_string(buildingcardToBeTaken->getPrice()) << ") \r\n";
-		if (buildingcardToBeTaken->getDescription() != "") {
-			*player << "\t\t" << buildingcardToBeTaken->getDescription() << "\r\n";
-		}
-	}
 }
