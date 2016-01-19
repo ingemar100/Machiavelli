@@ -46,6 +46,11 @@ bool Player::isCharacter(std::shared_ptr<Character> character)
 void Player::act(std::shared_ptr<Character> character)
 {
 	*socket << "Je bent nu aan de beurt als: " << character->getName() << "\r\n";
+
+	std::vector<std::string> options;
+	options.push_back("Klaar");
+	activeDialog = make_shared<Dialogue>("Maak een keuze",options, socket);
+	int keuze = activeDialog->activate();
 }
 
 std::vector<std::shared_ptr<Character>> Player::pickCharacters(std::vector<std::shared_ptr<Character>> options)

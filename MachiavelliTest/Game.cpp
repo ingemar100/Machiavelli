@@ -76,7 +76,9 @@ void Game::handleCommand(ClientCommand command)
 		if (command.get_cmd() == "start") {
 			setUp();
 
-			startRound();
+			while (true) {
+				startRound();
+			}
 		}
 		else if (command.get_cmd() == "help") {
 			*command.get_client() << showHelp();
@@ -87,6 +89,12 @@ void Game::handleCommand(ClientCommand command)
 		}
 		else {
 			*command.get_client() << command.get_player()->get_name() << ", you wrote: '" << command.get_cmd() << "', but I'll ignore that for now.\r\n" << machiavelli_prompt;
+		}
+	}
+	catch (const exception& ex) {
+		cerr << "*** exception in consumer thread for player " << command.get_player()->get_name() << '\n';
+		if (command.get_client()->is_open()) {
+			command.get_client()->write("Sorry, something went wrong during handling of your request.\r\n");
 		}
 	}
 	catch(...) {
@@ -149,6 +157,7 @@ void Game::pickCharacters()
 		//koning kiest eerst kaarten
 		//daarna steeds volgende
 		characters = toPick->pickCharacters(characters);
+		messageAllExcept(toPick->get_name() + " is picking characters.\r\n", toPick);
 
 		bool next = false;
 		for (auto player : players) {
@@ -170,6 +179,7 @@ void Game::handleTurns() {
 		//check welke player karakter is
 		for (auto player : players) {
 			if (player->isCharacter(character)) {
+				messageAllExcept(player->get_name() + " is acting as" + character->getName() + ".\r\n", player);
 				player->act(character);
 			}
 		}
