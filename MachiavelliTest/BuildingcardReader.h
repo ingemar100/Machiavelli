@@ -19,6 +19,8 @@ public:
 
 	std::vector<std::shared_ptr<Buildingcard>> getBuildingCards();
 	std::shared_ptr<Buildingcard> takeCard();
+	std::vector<std::shared_ptr<Buildingcard>> peekTwo();
+	void discardTop();
 
 private:
 	std::vector<std::shared_ptr<Buildingcard>> buildingCards;

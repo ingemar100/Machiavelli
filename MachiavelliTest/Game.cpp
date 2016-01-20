@@ -160,13 +160,20 @@ void Game::pickCharacters()
 		messageAllExcept(toPick->get_name() + " is picking characters.\r\n", toPick);
 
 		bool next = false;
-		for (auto player : players) {
+		bool picked = false;
+		int index = 0;
+		while (!picked){
+			auto player = players[index];
 			if (next) {
 				toPick = player;
 				break;
 			}
 			else if (player == toPick) {
 				next = true;
+			}
+			index++;
+			if (index >= players.size()) {
+				index = 0;
 			}
 		}
 	}
@@ -215,6 +222,8 @@ std::string Game::showHelp()
 	info += "8 - Condottiere(rood)\r\n";
 	info += "\tVernietigt een gebouw\r\n";
 	info += "\tOntvangt van alle militaire gebouwen\r\n";
+
+	info += machiavelli_prompt;
 
 	return info;
 }

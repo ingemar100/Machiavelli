@@ -59,10 +59,15 @@ public:
 		return this->choices.size();
 	}
 
-	void pick(std::string input) {
-		userInput = std::stoi(input);
-		if (userInput > choices.size() - 1) {
+	bool pick(std::string input) {
+		int test = std::stoi(input);
+		if (test > choices.size() - 1) {
 			*socket << "You wrote: '" << input << "', but that option doesn't exist.\r\n" << machiavelli_prompt;
+			return false;
+		}
+		else {
+			userInput = test;
+			return true;
 		}
 	}
 };

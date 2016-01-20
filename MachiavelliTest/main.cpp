@@ -38,8 +38,8 @@ void consume_command() // runs in its own thread
 			try {
 				// TODO handle command here
 				//machiavelli::game->handleCommand(command);
-				thread poep{ &Game::handleCommand, machiavelli::game, command };
-				poep.detach();
+				thread commandThread{ &Game::handleCommand, machiavelli::game, command };
+				commandThread.detach();
 			} catch (const exception& ex) {
 				cerr << "*** exception in consumer thread for player " << player->get_name() << ": " << ex.what() << '\n';
 				if (client->is_open()) {
@@ -78,7 +78,7 @@ void handle_client(shared_ptr<Socket> client) // this function runs in a separat
 			}
 		};
 
-		shared_ptr<Player> player {new Player {name, age, client}};
+		shared_ptr<Player> player {new Player {name, age, client, machiavelli::game}};
 
 		machiavelli::game->addPlayer(player);
 		*client << "Welcome, " << name << ", use the 'start' command to begin playing our game!\r\n" << machiavelli_prompt;

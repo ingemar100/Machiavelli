@@ -8,9 +8,9 @@
 #pragma once
 #include "Player.hpp"
 #include "Dialogue.h"
+#include "Game.h"
 
 using namespace std;
-
 
 void Player::addBuildingCard(std::shared_ptr<Buildingcard> buildingCard)
 {
@@ -20,8 +20,9 @@ void Player::addBuildingCard(std::shared_ptr<Buildingcard> buildingCard)
 void Player::handleCommand(std::string cmd)
 {
 	if (activeDialog) {
-		activeDialog->pick(cmd);
-		activeDialog = nullptr;
+		if (activeDialog->pick(cmd)) {
+			activeDialog = nullptr;
+		}
 	}
 	else {
 		*socket << "Sorry: '" << name << ", but its not your turn to act.\r\n" << machiavelli_prompt;
@@ -48,9 +49,32 @@ void Player::act(std::shared_ptr<Character> character)
 	*socket << "Je bent nu aan de beurt als: " << character->getName() << "\r\n";
 
 	std::vector<std::string> options;
-	options.push_back("Klaar");
+	options.push_back("Neem 2 goudstukken");
+	options.push_back("Neem 2 bouwkaarten en leg er 1 af");
 	activeDialog = make_shared<Dialogue>("Maak een keuze",options, socket);
 	int keuze = activeDialog->activate();
+
+	if (keuze == 0) {
+		game->takeGold(shared_from_this(), 2);
+	}
+	else if (keuze == 1) {
+		auto options = game->getBuildingcardReader()->peekTwo();
+		std::vector<std::string> names;
+		names.push_back(options[0]->getName());
+		names.push_back(options[1]->getName());
+
+		activeDialog = make_shared<Dialogue>("Pick a card (the other card will be discarded)", names, socket);
+		int keuze = activeDialog->activate();
+
+		if (keuze == 0) {
+			game->takeCards(shared_from_this(), 1);
+			game->getBuildingcardReader()->discardTop();
+		}
+		else if (keuze == 1) {
+			game->getBuildingcardReader()->discardTop();
+			game->takeCards(shared_from_this(), 1);
+		}
+	}
 }
 
 std::vector<std::shared_ptr<Character>> Player::pickCharacters(std::vector<std::shared_ptr<Character>> options)
@@ -77,8 +101,8 @@ std::vector<std::shared_ptr<Character>> Player::pickCharacters(std::vector<std::
 	int pickIndex = activeDialog->activate();
 
 	addCharacter(options[pickIndex]);
-	options.erase(options.begin() + discardIndex);
-	optionNames.erase(optionNames.begin() + discardIndex);
+	options.erase(options.begin() + pickIndex);
+	optionNames.erase(optionNames.begin() + pickIndex);
 	
 
 	//overgebleven karakters doorgeven

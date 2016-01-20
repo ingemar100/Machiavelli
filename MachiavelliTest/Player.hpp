@@ -17,12 +17,14 @@
 #include "Buildingcard.h"
 #include "Character.h"
 
+class Game;
+
 class Dialogue;
 
-class Player {
+class Player : public std::enable_shared_from_this<Player> {
 public:
 	Player() {}
-	Player(const std::string& name, const int age, std::shared_ptr<Socket> socket) : name{ name }, age{ age }, socket{ socket } {}
+	Player(const std::string& name, const int age, std::shared_ptr<Socket> socket, std::shared_ptr<Game> game) : name{ name }, age{ age }, socket{ socket }, game{ game } {}
 	
 	std::string get_name() const { return name; }
 	int get_age() const { return age; }
@@ -53,6 +55,7 @@ private:
 	std::vector<std::shared_ptr<Buildingcard>> buildingCards;
 	std::shared_ptr<Dialogue> activeDialog;
 	std::vector<std::shared_ptr<Character>> characters;
+	std::shared_ptr<Game> game;
 };
 
 #endif /* Player_hpp */

@@ -19,14 +19,15 @@ public:
 	std::string showHelp();
 	void startRound();
 	void handleCommand(ClientCommand command);
+	void takeGold(std::shared_ptr<Player> player, int amount);
+	void takeCards(std::shared_ptr<Player> player, int amount);
+	std::shared_ptr<BuildingcardReader> getBuildingcardReader() { return bg; };
 
 private:
 	std::vector<std::shared_ptr<Player>> players;
 	void messageAll(std::string message);
 	void messageAllExcept(std::string message, std::shared_ptr<Player> except);
 	int goldPieces;
-	void takeGold(std::shared_ptr<Player> player, int amount);
-	void takeCards(std::shared_ptr<Player> player, int amount);
 	std::shared_ptr<BuildingcardReader> bg;
 	std::shared_ptr<CharacterReader> cr;
 	std::shared_ptr<Player> king;

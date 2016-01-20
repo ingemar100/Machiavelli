@@ -50,4 +50,15 @@ std::shared_ptr<Buildingcard> BuildingcardReader::takeCard()
 	return cardToBeTaken;
 }
 
+std::vector<std::shared_ptr<Buildingcard>> BuildingcardReader::peekTwo()
+{
+	std::vector<std::shared_ptr<Buildingcard>> topTwo;
+	topTwo.push_back(buildingCards[0]);
+	topTwo.push_back(buildingCards[1]);
+	return topTwo;
+}
+
+void BuildingcardReader::discardTop() {
+	buildingCards.erase(buildingCards.begin());
+}
 
