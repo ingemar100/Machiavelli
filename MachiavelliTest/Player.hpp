@@ -50,6 +50,7 @@ private:
 	std::string name;
 	int age;
 	std::shared_ptr<Socket> socket;
+	int buildingsAllowed = 0;
 
 	int goldPieces = 0;
 	std::vector<std::shared_ptr<Buildingcard>> buildingCards;
@@ -59,6 +60,8 @@ private:
 	std::shared_ptr<Game> game;
 	void takeGoldOrCards();
 	bool build();
+	void useSpecial(std::shared_ptr<Character> character);
+	void getIncome(std::shared_ptr<Character> character);
 };
 
 #endif /* Player_hpp */

@@ -183,12 +183,29 @@ void Game::handleTurns() {
 	auto characters = cr->getCharactersInOrder();
 
 	for (auto character : characters) {
-		//check welke player karakter is
-		for (auto player : players) {
-			if (player->isCharacter(character)) {
-				messageAllExcept(player->get_name() + " is aan de beurt als " + character->getName() + ".\r\n", player);
-				player->act(character);
+		if (!character->isDead()){
+			bool isPicked = false;
+			//check welke player karakter is
+			for (auto player : players) {
+				if (player->isCharacter(character)) {
+					messageAllExcept(player->get_name() + " is aan de beurt als " + character->getName() + ".\r\n", player);
+					player->act(character);
+					isPicked = true;
+
+					if (character->getName() == "Koning") {
+						king = player;
+					}
+				}
+
 			}
+
+			if (!isPicked) {
+				messageAll("\r\n" + character->getName() + " is door niemand gekozen\r\n");
+			}
+		}
+		else {
+			messageAll("\r\n" + character->getName() + " komt niet aan de beurt omdat hij vermoord is\r\n");
+			character->setDead(false);
 		}
 	}
 }

@@ -46,12 +46,23 @@ bool Player::isCharacter(std::shared_ptr<Character> character)
 
 void Player::act(std::shared_ptr<Character> character)
 {
-	*socket << "Je bent nu aan de beurt als: " << character->getName() << "\r\n";
+	*socket << "\r\nJe bent nu aan de beurt als: " << character->getName() << "\r\n";
+
+	if (character->isStolenFrom()) {
+		character->thief->addGold(goldPieces);
+		goldPieces = 0;
+	}
+
+	getIncome(character);
 
 	bool tookGoldOrCards = false;
-	bool builtBuildings = false;
+	buildingsAllowed = 1;
 	bool usedSpecialPower = false;
 	bool endTurn = false;
+
+	if (character->getName() == "Bouwmeester") {
+		buildingsAllowed = 3;
+	}
 
 	while (!endTurn) {
 		std::vector<std::string> options;
@@ -67,7 +78,7 @@ void Player::act(std::shared_ptr<Character> character)
 			takeChoice = choices;
 			choices++;
 		}
-		if (!builtBuildings) {
+		if (buildingsAllowed > 0) {
 			options.push_back("Bouw gebouwen");
 			buildChoice = choices;
 			choices++;
@@ -86,10 +97,11 @@ void Player::act(std::shared_ptr<Character> character)
 			tookGoldOrCards = true;
 		}
 		else if (keuze == buildChoice) {
-			builtBuildings = build();
+			build();
 		}
 		else if (keuze == specialChoice) {
-			//
+			useSpecial(character);
+			usedSpecialPower = true;
 		}
 		else if (keuze == choices) {
 			endTurn = true;
@@ -193,7 +205,7 @@ bool Player::build()
 	activeDialog = make_shared<Dialogue>("Welk gebouw wil je bouwen? Aantal goudstukken: " + std::to_string(goldPieces), names, socket);
 	int choice = activeDialog->activate();
 
-	if (choice == names.size()) {
+	if (choice == names.size() - 1) {
 		return false;
 	}
 	else {
@@ -207,8 +219,100 @@ bool Player::build()
 			buildingCards.erase(buildingCards.begin() + choice);
 			*socket << "Je hebt een " << toBuild->getName() << " gebouwd\r\n";
 			game->messageAllExcept(name + " heeft een " + toBuild->getName() + " gebouwd\r\n", shared_from_this());
+
+			buildingsAllowed--;
+			goldPieces -= toBuild->getPrice();
 		}
 	}
 
 	return true;
+}
+
+void Player::useSpecial(std::shared_ptr<Character> character)
+{
+	if (character->getName() == "Moordenaar") {
+		std::vector<std::shared_ptr<Character>>characters(game->getCharacterReader()->getCharactersInOrder());
+		characters.erase(characters.begin());
+
+		std::vector<std::string> names;
+		for (auto c : characters) {
+			names.push_back(c->getName());
+		}
+
+		activeDialog = make_shared<Dialogue>("Welk karakter wil je vermoorden: ", names, socket);
+		int choice = activeDialog->activate();
+
+		auto toDie = game->getCharacterReader()->getCharactersInOrder()[choice + 1];
+		toDie->setDead(true);
+
+		game->messageAll("\r\nDe " + toDie->getName() + " is vermoord\r\n");
+	}
+	else if (character->getName() == "Dief") {
+		std::vector<std::shared_ptr<Character>>characters(game->getCharacterReader()->getCharactersInOrder());
+		characters.erase(characters.begin());//moordenaar
+		characters.erase(characters.begin());//dief
+
+		std::vector<std::string> names;
+		for (auto c : characters) {
+			names.push_back(c->getName());
+		}
+
+		activeDialog = make_shared<Dialogue>("Van welk karakter wil je stelen: ", names, socket);
+		int choice = activeDialog->activate();
+
+		auto victim = game->getCharacterReader()->getCharactersInOrder()[choice + 2];
+		victim->setStolenFrom(true);
+		victim->thief = shared_from_this();
+		game->messageAll("\r\nDe " + victim->getName() + " wordt door de dief bestolen\r\n");
+	}
+	else if (character->getName() == "Magier") {
+		std::vector<std::string> optns = { "Kaarten ruilen met een andere speler", "Alle kaarten afleggen en een gelijk aantal kaarten trekken" };
+		activeDialog = make_shared<Dialogue>("Wat wil je doen: ", optns, socket);
+		int choice = activeDialog->activate();
+
+		if (choice == 0) {
+			auto players = game->getPlayers();
+			std::vector<std::string> optns2;
+			for (auto player : players) {
+				optns2.push_back(player->get_name());
+			}
+			activeDialog = make_shared<Dialogue>("Welke speler?: ", optns2, socket);
+			int choice = activeDialog->activate();
+			auto victim = players[choice];
+
+			auto tmp = victim->buildingCards;
+			victim->buildingCards = this->buildingCards;
+			this->buildingCards = tmp;
+		}
+		else if (choice == 1) {
+			int size = buildingCards.size();
+			buildingCards.clear();
+
+			game->takeCards(shared_from_this(), size);
+		}
+	}
+	else if (character->getName() == "Bouwmeester") {
+		game->takeCards(shared_from_this(), 2);
+	}
+}
+
+void Player::getIncome(std::shared_ptr<Character> character)
+{
+	if (character->getName() == "Koopman") {
+		game->messageAllExcept(name + " ontvangt als koopman 1 goudstuk\r\n", shared_from_this());
+		*socket << "Je ontvangt als koopman 1 goudstuk\r\n";
+		goldPieces++;
+	}
+	int income = 0;
+
+	for (auto building : buildingsBuilt) {
+		if (building->getColor() == character->getColor()) {
+			income++;
+		}
+	}
+
+	goldPieces += income;
+	game->messageAllExcept(name + " ontvangt " + to_string(income) + " goudstukken voor zijn gebouwen\r\n", shared_from_this());
+	*socket << "Je ontvangt " << to_string(income) << " goudstukken voor je gebouwen\r\n";
+
 }

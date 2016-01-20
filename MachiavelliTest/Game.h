@@ -22,8 +22,10 @@ public:
 	void takeGold(std::shared_ptr<Player> player, int amount);
 	void takeCards(std::shared_ptr<Player> player, int amount);
 	std::shared_ptr<BuildingcardReader> getBuildingcardReader() { return bg; };
+	std::shared_ptr<CharacterReader> getCharacterReader() { return cr; };
 	void messageAll(std::string message);
 	void messageAllExcept(std::string message, std::shared_ptr<Player> except);
+	std::vector<std::shared_ptr<Player>> getPlayers() { return players; };
 
 private:
 	std::vector<std::shared_ptr<Player>> players;
