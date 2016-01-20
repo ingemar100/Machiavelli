@@ -25,7 +25,7 @@ void Player::handleCommand(std::string cmd)
 		}
 	}
 	else {
-		*socket << "Sorry: '" << name << ", but its not your turn to act.\r\n" << machiavelli_prompt;
+		*socket << "Sorry: '" << name << ", maar je bent niet aan de beurt.\r\n" << machiavelli_prompt;
 	}
 }
 
@@ -56,14 +56,15 @@ void Player::act(std::shared_ptr<Character> character)
 
 	if (keuze == 0) {
 		game->takeGold(shared_from_this(), 2);
+		game->messageAllExcept(name + " heeft twee goudstukken gepakt.", shared_from_this());
 	}
 	else if (keuze == 1) {
 		auto options = game->getBuildingcardReader()->peekTwo();
 		std::vector<std::string> names;
-		names.push_back(options[0]->getName());
-		names.push_back(options[1]->getName());
+		names.push_back(options[0]->toString());
+		names.push_back(options[1]->toString());
 
-		activeDialog = make_shared<Dialogue>("Pick a card (the other card will be discarded)", names, socket);
+		activeDialog = make_shared<Dialogue>("Kies een kaart (de andere kaart wordt afgelegd)", names, socket);
 		int keuze = activeDialog->activate();
 
 		if (keuze == 0) {
@@ -74,19 +75,21 @@ void Player::act(std::shared_ptr<Character> character)
 			game->getBuildingcardReader()->discardTop();
 			game->takeCards(shared_from_this(), 1);
 		}
+
+		game->messageAllExcept(name + " heeft twee kaarten gepakt en een afgelegd.", shared_from_this());
 	}
 }
 
 std::vector<std::shared_ptr<Character>> Player::pickCharacters(std::vector<std::shared_ptr<Character>> options)
 {
-	std::string message = "These character cards are available: ";
+	std::string message = "Deze karakterkaarten zijn nog beschikbaar: ";
 	std::vector<std::string> optionNames;
 	for (auto option : options) {
 		message += option->getName() + ",";
 		optionNames.push_back(option->getName());
 	}
 	//1 wegleggen
-	message += "\r\nPick a character to discard\r\n";
+	message += "\r\nKies welk karakter je wilt afleggen\r\n";
 
 	activeDialog = make_shared<Dialogue>(message, optionNames, socket);
 	int discardIndex = activeDialog->activate();
@@ -95,7 +98,7 @@ std::vector<std::shared_ptr<Character>> Player::pickCharacters(std::vector<std::
 	optionNames.erase(optionNames.begin() + discardIndex);
 
 	//1 kiezen
-	message = "\r\nPick a character to keep\r\n";
+	message = "\r\nKies welk karakter je wilt houden\r\n";
 
 	activeDialog = make_shared<Dialogue>(message, optionNames, socket);
 	int pickIndex = activeDialog->activate();

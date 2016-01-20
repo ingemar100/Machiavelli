@@ -18,7 +18,7 @@ void Game::setUp()
 {
 	//check if enough players
 
-	messageAll("Setting up game");
+	messageAll("Voorbereiden spel...");
 
 	bg = std::make_shared<BuildingcardReader>();
 	cr = std::make_shared<CharacterReader>();
@@ -38,7 +38,7 @@ void Game::setUp()
 	}
 
 	//king->get_socket << "Koning: " << king->get_name() << "\r\n";
-	messageAll(king->get_name() + " is the oldest player, so becomes the king.");
+	messageAll(king->get_name() + " is de oudste speler, dus die wordt de koning.");
 }
 
 void Game::addPlayer(std::shared_ptr<Player> player)
@@ -62,7 +62,7 @@ void Game::removePlayer(std::shared_ptr<Player> player)
 
 void Game::startRound()
 {
-	messageAll("Starting next round");
+	messageAll("Begin volgende ronde");
 
 	pickCharacters();
 
@@ -132,11 +132,11 @@ void Game::takeGold(std::shared_ptr<Player> player, int amount)
 
 void Game::takeCards(std::shared_ptr<Player> player, int amount)
 {
-	*player << "You took the following BuildingCard(s):";
+	*player << "Je hebt de volgende bouwkaarten gepakt:";
 	for (int i = 0; i < amount; i++) {
 		std::shared_ptr<Buildingcard> buildingcardToBeTaken = bg->takeCard();
 		player->addBuildingCard(buildingcardToBeTaken);
-		*player << "\r\n\t" << buildingcardToBeTaken->getName() << " (" << buildingcardToBeTaken->getColor() << ", " << std::to_string(buildingcardToBeTaken->getPrice()) << ") \r\n";
+		*player << "\r\n\t" << buildingcardToBeTaken->toString() << "\r\n";
 		if (buildingcardToBeTaken->getDescription() != "") {
 			*player << "\t\t" << buildingcardToBeTaken->getDescription() << "\r\n";
 		}
@@ -157,7 +157,7 @@ void Game::pickCharacters()
 		//koning kiest eerst kaarten
 		//daarna steeds volgende
 		characters = toPick->pickCharacters(characters);
-		messageAllExcept(toPick->get_name() + " is picking characters.\r\n", toPick);
+		messageAllExcept(toPick->get_name() + " is karakters aan het kiezen.\r\n", toPick);
 
 		bool next = false;
 		bool picked = false;
@@ -186,7 +186,7 @@ void Game::handleTurns() {
 		//check welke player karakter is
 		for (auto player : players) {
 			if (player->isCharacter(character)) {
-				messageAllExcept(player->get_name() + " is acting as" + character->getName() + ".\r\n", player);
+				messageAllExcept(player->get_name() + " is aan de beurt als" + character->getName() + ".\r\n", player);
 				player->act(character);
 			}
 		}

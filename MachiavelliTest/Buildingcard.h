@@ -16,6 +16,7 @@ public:
 	void setPrice(int price) { _price = price; };
 	void setColor(std::string color) { _color = color; };
 	void setProperty(std::string description) { _description = description; };
+	std::string toString();
 
 private:
 	std::string _name = "";
