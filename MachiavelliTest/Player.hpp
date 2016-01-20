@@ -51,11 +51,14 @@ private:
 	int age;
 	std::shared_ptr<Socket> socket;
 
-	int goldPieces;
+	int goldPieces = 0;
 	std::vector<std::shared_ptr<Buildingcard>> buildingCards;
+	std::vector<std::shared_ptr<Buildingcard>> buildingsBuilt;
 	std::shared_ptr<Dialogue> activeDialog;
 	std::vector<std::shared_ptr<Character>> characters;
 	std::shared_ptr<Game> game;
+	void takeGoldOrCards();
+	bool build();
 };
 
 #endif /* Player_hpp */

@@ -48,35 +48,52 @@ void Player::act(std::shared_ptr<Character> character)
 {
 	*socket << "Je bent nu aan de beurt als: " << character->getName() << "\r\n";
 
-	std::vector<std::string> options;
-	options.push_back("Neem 2 goudstukken");
-	options.push_back("Neem 2 bouwkaarten en leg er 1 af");
-	activeDialog = make_shared<Dialogue>("Maak een keuze",options, socket);
-	int keuze = activeDialog->activate();
+	bool tookGoldOrCards = false;
+	bool builtBuildings = false;
+	bool usedSpecialPower = false;
+	bool endTurn = false;
 
-	if (keuze == 0) {
-		game->takeGold(shared_from_this(), 2);
-		game->messageAllExcept(name + " heeft twee goudstukken gepakt.", shared_from_this());
-	}
-	else if (keuze == 1) {
-		auto options = game->getBuildingcardReader()->peekTwo();
-		std::vector<std::string> names;
-		names.push_back(options[0]->toString());
-		names.push_back(options[1]->toString());
+	while (!endTurn) {
+		std::vector<std::string> options;
 
-		activeDialog = make_shared<Dialogue>("Kies een kaart (de andere kaart wordt afgelegd)", names, socket);
+		//status bekijken
+		int choices = 0;
+		int takeChoice = -1;
+		int buildChoice = -1;
+		int specialChoice = -1;
+
+		if (!tookGoldOrCards) {
+			options.push_back("Pak goud of kaarten");
+			takeChoice = choices;
+			choices++;
+		}
+		if (!builtBuildings) {
+			options.push_back("Bouw gebouwen");
+			buildChoice = choices;
+			choices++;
+		}
+		if (!usedSpecialPower) {
+			options.push_back("Gebruik de karaktereigenschap van de " + character->getName());
+			specialChoice = choices;
+			choices++;
+		}
+		options.push_back("Beeindig je beurt");
+		activeDialog = make_shared<Dialogue>("Maak een keuze", options, socket);
 		int keuze = activeDialog->activate();
 
-		if (keuze == 0) {
-			game->takeCards(shared_from_this(), 1);
-			game->getBuildingcardReader()->discardTop();
+		if (keuze == takeChoice) {
+			takeGoldOrCards();
+			tookGoldOrCards = true;
 		}
-		else if (keuze == 1) {
-			game->getBuildingcardReader()->discardTop();
-			game->takeCards(shared_from_this(), 1);
+		else if (keuze == buildChoice) {
+			builtBuildings = build();
 		}
-
-		game->messageAllExcept(name + " heeft twee kaarten gepakt en een afgelegd.", shared_from_this());
+		else if (keuze == specialChoice) {
+			//
+		}
+		else if (keuze == choices) {
+			endTurn = true;
+		}
 	}
 }
 
@@ -128,4 +145,70 @@ const Player& Player::operator<<(const std::string& message) const
 {
 	socket->write(message);
 	return *this;
+}
+
+void Player::takeGoldOrCards()
+{
+	std::vector<std::string> options;
+	options.push_back("Neem 2 goudstukken");
+	options.push_back("Neem 2 bouwkaarten en leg er 1 af");
+	activeDialog = make_shared<Dialogue>("Maak een keuze", options, socket);
+	int keuze = activeDialog->activate();
+
+	if (keuze == 0) {
+		game->takeGold(shared_from_this(), 2);
+		game->messageAllExcept(name + " heeft twee goudstukken gepakt.", shared_from_this());
+	}
+	else if (keuze == 1) {
+		auto options = game->getBuildingcardReader()->peekTwo();
+		std::vector<std::string> names;
+		names.push_back(options[0]->toString());
+		names.push_back(options[1]->toString());
+
+		activeDialog = make_shared<Dialogue>("Kies een kaart (de andere kaart wordt afgelegd)", names, socket);
+		int keuze = activeDialog->activate();
+
+		if (keuze == 0) {
+			game->takeCards(shared_from_this(), 1);
+			game->getBuildingcardReader()->discardTop();
+		}
+		else if (keuze == 1) {
+			game->getBuildingcardReader()->discardTop();
+			game->takeCards(shared_from_this(), 1);
+		}
+
+		game->messageAllExcept(name + " heeft twee kaarten gepakt en een afgelegd.", shared_from_this());
+	}
+}
+
+bool Player::build()
+{
+	//geef lijst van gebouwen of terug
+	std::vector<std::string> names;
+	for (auto card : buildingCards) {
+		names.push_back(card->toString());
+	}
+	names.push_back("Annuleren");
+
+	activeDialog = make_shared<Dialogue>("Welk gebouw wil je bouwen? Aantal goudstukken: " + std::to_string(goldPieces), names, socket);
+	int choice = activeDialog->activate();
+
+	if (choice == names.size()) {
+		return false;
+	}
+	else {
+		auto toBuild = buildingCards[choice];
+		if (toBuild->getPrice() > goldPieces) {
+			*socket << "Je hebt niet genoeg goudstukken om dit gebouw te kunnen bouwen\r\n";
+			return build();
+		}
+		else {
+			buildingsBuilt.push_back(toBuild);
+			buildingCards.erase(buildingCards.begin() + choice);
+			*socket << "Je hebt een " << toBuild->getName() << " gebouwd\r\n";
+			game->messageAllExcept(name + " heeft een " + toBuild->getName() + " gebouwd\r\n", shared_from_this());
+		}
+	}
+
+	return true;
 }

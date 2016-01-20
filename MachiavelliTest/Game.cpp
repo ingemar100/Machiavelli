@@ -186,7 +186,7 @@ void Game::handleTurns() {
 		//check welke player karakter is
 		for (auto player : players) {
 			if (player->isCharacter(character)) {
-				messageAllExcept(player->get_name() + " is aan de beurt als" + character->getName() + ".\r\n", player);
+				messageAllExcept(player->get_name() + " is aan de beurt als " + character->getName() + ".\r\n", player);
 				player->act(character);
 			}
 		}
