@@ -48,6 +48,7 @@ public:
 	int getTotalPoints() { return totalPoints; };
 	int getPointsForBuildings() { return pointsForBuildings; };
 	void clearBuildingCards() { buildingCards.clear(); };
+	int get_gold() { return goldPieces; };
 
 	const Player & operator<<(const char c) const;
 	const Player & operator<<(const char * message) const;

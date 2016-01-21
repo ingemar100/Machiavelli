@@ -16,7 +16,6 @@ Game::~Game()
 
 void Game::setUp()
 {
-	//check if enough players
 
 	messageAll("Voorbereiden spel...");
 
@@ -76,6 +75,12 @@ void Game::handleCommand(ClientCommand command)
 	try {
 		std::string cmd = command.get_cmd();
 		if (command.get_cmd() == "start") {
+			//check if enough players
+			if (players.size() < 2) {
+				messageAll("Er zijn twee spelers nodig om te kunnen spelen\r\n" + machiavelli_prompt);
+				return;
+			}
+
 			setUp();
 
 			while (!endGame) {
@@ -131,6 +136,18 @@ void Game::setFirstToEight(std::shared_ptr<Player> _first)
 	firstToEight = _first;
 	messageAll(_first->get_name() + " heeft 8 gebouwen, dus het spel eindigt na deze ronde\r\n");
 	endGame = true;
+}
+
+void Game::showStatus(std::shared_ptr<Socket> socket)
+{
+	for (auto player : players) {
+		*socket << "--- Status van " << player->get_name() << " ---\r\n";
+		*socket << "Goud: " << to_string(player->get_gold()) << "\r\n";
+		*socket << "Gebouwde gebouwen: \r\n";
+		for (auto building : player->getBuildingsBuilt()) {
+			*socket << "\t" << building->toString() << "\r\n";
+		}
+	}
 }
 
 void Game::takeGold(std::shared_ptr<Player> player, int amount)

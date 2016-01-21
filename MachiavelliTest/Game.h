@@ -28,6 +28,7 @@ public:
 	std::vector<std::shared_ptr<Player>> getPlayers() { return players; };
 	void addGold(int toAdd) { goldPieces += toAdd; };
 	void setFirstToEight(std::shared_ptr<Player> _first);
+	void showStatus(std::shared_ptr<Socket> socket);
 
 private:
 	std::vector<std::shared_ptr<Player>> players;

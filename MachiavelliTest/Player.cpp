@@ -89,6 +89,7 @@ void Player::act(std::shared_ptr<Character> character)
 			specialChoice = choices;
 			choices++;
 		}
+		options.push_back("Bekijk status");
 		options.push_back("Beeindig je beurt");
 		activeDialog = make_shared<Dialogue>("Maak een keuze", options, socket);
 		int keuze = activeDialog->activate();
@@ -105,6 +106,9 @@ void Player::act(std::shared_ptr<Character> character)
 			usedSpecialPower = true;
 		}
 		else if (keuze == choices) {
+			game->showStatus(socket);
+		}
+		else if (keuze == choices + 1) {
 			endTurn = true;
 		}
 	}
