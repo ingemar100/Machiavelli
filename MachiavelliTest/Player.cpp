@@ -50,6 +50,7 @@ void Player::act(std::shared_ptr<Character> character)
 
 	if (character->isStolenFrom()) {
 		character->thief->addGold(goldPieces);
+		game->messageAll("De " + character->getName() + " is betolen en raakt al zijn goud kwijt. " + character->thief->get_name() + " krijgt er " + to_string(goldPieces) + " goudstukken bij\r\n");
 		goldPieces = 0;
 	}
 
@@ -222,7 +223,12 @@ bool Player::build()
 
 			buildingsAllowed--;
 			goldPieces -= toBuild->getPrice();
+			game->addGold(toBuild->getPrice());
 		}
+	}
+
+	if (buildingsBuilt.size() >= 8) {
+		game->setFirstToEight(shared_from_this());
 	}
 
 	return true;
@@ -283,12 +289,15 @@ void Player::useSpecial(std::shared_ptr<Character> character)
 			auto tmp = victim->buildingCards;
 			victim->buildingCards = this->buildingCards;
 			this->buildingCards = tmp;
+			game->messageAll(name + " heeft zijn kaarten geruild met " + victim->get_name() + "\r\n");
+
 		}
 		else if (choice == 1) {
 			int size = buildingCards.size();
 			buildingCards.clear();
 
 			game->takeCards(shared_from_this(), size);
+			game->messageAll(name + " heeft al zijn kaarten weggelegd en er nieuwe kaarten voor in de plaats getrokken\r\n");
 		}
 	}
 	else if (character->getName() == "Bouwmeester") {
@@ -325,11 +334,16 @@ void Player::useSpecial(std::shared_ptr<Character> character)
 			auto toDestroy = victim->buildingsBuilt[choice2];
 			int toPay = toDestroy->getPrice() - 1;
 
-			victim->buildingsBuilt.erase(victim->buildingsBuilt.begin() + choice2);
-			goldPieces -= toPay;
-			game->addGold(toPay);
+			if (toPay <= goldPieces) {
+				victim->buildingsBuilt.erase(victim->buildingsBuilt.begin() + choice2);
+				goldPieces -= toPay;
+				game->addGold(toPay);
 
-			game->messageAll(name + " heeft de " + toDestroy->getName() + " van " + victim->get_name() + " vernietigd.\r\n");
+				game->messageAll(name + " heeft de " + toDestroy->getName() + " van " + victim->get_name() + " vernietigd.\r\n");
+			}
+			else {
+				*socket << "Je hebt niet genoeg goud\r\n";
+			}
 		}
 	}
 }

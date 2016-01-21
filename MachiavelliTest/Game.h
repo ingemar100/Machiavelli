@@ -27,6 +27,7 @@ public:
 	void messageAllExcept(std::string message, std::shared_ptr<Player> except);
 	std::vector<std::shared_ptr<Player>> getPlayers() { return players; };
 	void addGold(int toAdd) { goldPieces += toAdd; };
+	void setFirstToEight(std::shared_ptr<Player> _first);
 
 private:
 	std::vector<std::shared_ptr<Player>> players;
@@ -36,5 +37,9 @@ private:
 	std::shared_ptr<Player> king;
 	void pickCharacters();
 	void handleTurns();
+	std::shared_ptr<Player> firstToEight;
+	bool endGame = false;
+	void pointCount();
+	void determineWinner();
 };
 

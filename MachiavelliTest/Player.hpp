@@ -25,7 +25,7 @@ class Player : public std::enable_shared_from_this<Player> {
 public:
 	Player() {}
 	Player(const std::string& name, const int age, std::shared_ptr<Socket> socket, std::shared_ptr<Game> game) : name{ name }, age{ age }, socket{ socket }, game{ game } {}
-	
+
 	std::string get_name() const { return name; }
 	int get_age() const { return age; }
 	std::shared_ptr<Socket> get_socket() const { return socket; }
@@ -40,8 +40,14 @@ public:
 	void clearCharacters() { characters.clear(); };
 	bool isCharacter(std::shared_ptr<Character> character);
 	void act(std::shared_ptr<Character> character);
+	std::vector<std::shared_ptr<Buildingcard>> getBuildingsBuilt() { return buildingsBuilt; };
 
 	std::vector<std::shared_ptr<Character>> pickCharacters(std::vector<std::shared_ptr<Character>> options);
+	void setTotalPoints(int _points) { totalPoints = _points; };
+	void setPointsForBUildings(int _points) { pointsForBuildings = _points; };
+	int getTotalPoints() { return totalPoints; };
+	int getPointsForBuildings() { return pointsForBuildings; };
+	void clearBuildingCards() { buildingCards.clear(); };
 
 	const Player & operator<<(const char c) const;
 	const Player & operator<<(const char * message) const;
@@ -62,6 +68,8 @@ private:
 	bool build();
 	void useSpecial(std::shared_ptr<Character> character);
 	void getIncome(std::shared_ptr<Character> character);
+	int totalPoints = 0;
+	int pointsForBuildings = 0;
 };
 
 #endif /* Player_hpp */

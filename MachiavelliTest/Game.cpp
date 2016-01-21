@@ -28,8 +28,10 @@ void Game::setUp()
 	//oldest player is king
 	int oldest = 0;
 	for (auto player : players) {
+		player->clearBuildingCards();
 		if (player->get_age() > oldest) {
 			king = player;
+			oldest = player->get_age();
 		}
 
 		//each player takes two goldpieces
@@ -76,9 +78,12 @@ void Game::handleCommand(ClientCommand command)
 		if (command.get_cmd() == "start") {
 			setUp();
 
-			while (true) {
+			while (!endGame) {
 				startRound();
 			}
+
+			//game over
+			pointCount();
 		}
 		else if (command.get_cmd() == "help") {
 			*command.get_client() << showHelp();
@@ -121,6 +126,13 @@ void Game::messageAllExcept(std::string message, std::shared_ptr<Player> except)
 	}
 }
 
+void Game::setFirstToEight(std::shared_ptr<Player> _first)
+{
+	firstToEight = _first;
+	messageAll(_first->get_name() + " heeft 8 gebouwen, dus het spel eindigt na deze ronde\r\n");
+	endGame = true;
+}
+
 void Game::takeGold(std::shared_ptr<Player> player, int amount)
 {
 	goldPieces -= amount;
@@ -152,6 +164,12 @@ void Game::pickCharacters()
 
 	std::vector<std::shared_ptr<Character>> characters = cr->getShuffledCharacters();
 	std::shared_ptr<Player> toPick = king;
+
+	//reset characters
+	for (auto character : characters) {
+		character->setStolenFrom(false);
+		character->setDead(false);
+	}
 
 	while (characters.size() > 0) {
 		//koning kiest eerst kaarten
@@ -207,6 +225,97 @@ void Game::handleTurns() {
 			messageAll("\r\n" + character->getName() + " komt niet aan de beurt omdat hij vermoord is\r\n");
 			character->setDead(false);
 		}
+	}
+}
+
+void Game::pointCount()
+{
+	messageAll("\r\nEinde spel\r\n\nPuntentelling:\r\n");
+	for (auto player : players) {
+		int totalPoints = 0;
+		int pointsForBuildings = 0;
+		bool hasRed = false;
+		bool hasGreen = false;
+		bool hasBlue = false;
+		bool hasLila = false;
+		bool hasYellow = false;
+
+		for (auto building : player->getBuildingsBuilt()) {
+			pointsForBuildings += building->getPrice();
+			if (building->getColor() == "Groen") {
+				hasGreen = true;
+			}
+			else if (building->getColor() == "Rood") {
+				hasRed = true;
+			}
+			else if (building->getColor() == "Blauw") {
+				hasBlue = true;
+			}
+			else if (building->getColor() == "Lila") {
+				hasLila = true;
+			}
+			else if (building->getColor() == "Geel") {
+				hasYellow = true;
+			}
+		}
+		totalPoints += pointsForBuildings;
+
+		if (hasRed && hasGreen && hasBlue && hasLila && hasYellow) {
+			totalPoints += 3;
+		}
+
+		if (player == firstToEight) {
+			totalPoints += 4;
+		}
+		else if (player->getBuildingsBuilt().size() >= 8) {
+			totalPoints += 2;
+		}
+
+		player->setPointsForBUildings(pointsForBuildings);
+		player->setTotalPoints(totalPoints);
+
+		messageAll(player->get_name() + ": " + to_string(totalPoints));
+	}
+
+	determineWinner();
+
+	
+}
+
+void Game::determineWinner()
+{
+	std::shared_ptr<Player> highestTotal = players[0];
+	bool equalTotal = false;
+	std::shared_ptr<Player> highestForBuildings = players[0];
+	bool equalHighest = false;
+
+	for (int i = 1; i < players.size(); i++) {
+		auto player = players[i];
+		if (highestTotal->getTotalPoints() < player->getTotalPoints()) {
+			highestTotal = player;
+			equalTotal = false;
+		}
+		else if (highestTotal->getTotalPoints() == player->getTotalPoints()) {
+			equalTotal = true;
+		}
+
+		if (highestForBuildings->getPointsForBuildings() < player->getPointsForBuildings()) {
+			highestTotal = player;
+			equalHighest = false;
+		}
+		else if (highestForBuildings->getPointsForBuildings() == player->getPointsForBuildings()) {
+			equalHighest = true;
+		}
+	}
+
+	if (equalTotal && equalHighest) {
+		messageAll("Het is een gelijkspel!");
+	}
+	else if (equalTotal) {
+		messageAll("Winnaar " + highestForBuildings->get_name() + "!");
+	}
+	else {
+		messageAll("Winnaar: " + highestTotal->get_name() + "!");
 	}
 }
 
