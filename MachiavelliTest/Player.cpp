@@ -294,6 +294,44 @@ void Player::useSpecial(std::shared_ptr<Character> character)
 	else if (character->getName() == "Bouwmeester") {
 		game->takeCards(shared_from_this(), 2);
 	}
+	else if (character->getName() == "Condottiere") {
+		auto players = game->getPlayers();
+		std::vector<std::string> optns2;
+		for (auto player : players) {
+			optns2.push_back(player->get_name() + " (" + to_string(player->buildingsBuilt.size()) + " gebouwen)");
+		}
+		activeDialog = make_shared<Dialogue>("Van Welke speler wil je een gebouw vernietigen?: ", optns2, socket);
+		int choice = activeDialog->activate();
+		auto victim = players[choice];
+
+		
+		auto buildings = victim->buildingsBuilt;
+		std::vector<std::string> optns3;
+		for (auto building : buildings) {
+			optns3.push_back(building->toString());
+		}
+		optns3.push_back("Annuleren");
+		activeDialog = make_shared<Dialogue>("Welk gebouw?: ", optns3, socket);
+		int choice2 = activeDialog->activate();
+
+		if (choice2 >= optns3.size()) {
+			return;
+		}
+		//check if vicimt is prediker
+		if (victim->isCharacter(game->getCharacterReader()->getCharactersInOrder()[4])) {
+			game->messageAll(victim->get_name() + " is de Prediker en dus immuun voor de Condottiere\r\n");
+		}
+		else {
+			auto toDestroy = victim->buildingsBuilt[choice2];
+			int toPay = toDestroy->getPrice() - 1;
+
+			victim->buildingsBuilt.erase(victim->buildingsBuilt.begin() + choice2);
+			goldPieces -= toPay;
+			game->addGold(toPay);
+
+			game->messageAll(name + " heeft de " + toDestroy->getName() + " van " + victim->get_name() + " vernietigd.\r\n");
+		}
+	}
 }
 
 void Player::getIncome(std::shared_ptr<Character> character)
